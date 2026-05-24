@@ -3,7 +3,7 @@ import requests
 
 app = Flask(__name__)
 
-BOT_ID = "cc3d639a659583736f23c3858f"
+BOT_ID = "8f6741295884416bc63a76c784"
 
 def send_message(text):
     url = "https://api.groupme.com/v3/bots/post"
@@ -28,4 +28,6 @@ def webhook():
     return "ok", 200
 
 if __name__ == "__main__":
-    app.run(port=5000)
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
