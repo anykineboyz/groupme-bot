@@ -26,7 +26,8 @@ def webhook():
         return "no data", 200
 
     message = data.get("text", "").lower()
-    name = data.get("name", "")
+  def webhook():
+    name = data.get("name")
     user_id = data.get("user_id")
     now = time()
 
