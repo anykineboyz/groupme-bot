@@ -26,7 +26,6 @@ def webhook():
         return "no data", 200
 
     message = data.get("text", "").lower()
-  def webhook():
     name = data.get("name")
     user_id = data.get("user_id")
     now = time()
@@ -65,8 +64,6 @@ def webhook():
 
     return "ok", 200
 
-if name == "lone wolf niko":
-    send_message("Shut up, Niko")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
