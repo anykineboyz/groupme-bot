@@ -94,6 +94,9 @@ def webhook():
     elif message == "hello":
         send_message(f"Hi {name}!")
 
+        if message == "Stop":
+        send_message(Remember Niko, Stop means STOP. So do not send another message, for you will recieve a warning and eventually kicked.)
+
     elif message == "/warnings":
         send_message(f"{name}, you have {warnings.get(name, 0)} warnings.")
 
