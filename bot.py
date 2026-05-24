@@ -6,7 +6,7 @@ import os
 
 app = Flask(__name__)
 
-BOT_ID = os.environ.get("2485a350b0d7b988306a01de92")
+BOT_ID = os.environ.get("BOT_ID")
 
 # -----------------------------
 # Tracking Data
