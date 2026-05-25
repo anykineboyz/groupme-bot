@@ -36,7 +36,10 @@ BANNED_WORDS = [
     "eva",
     "rene",
     "brendon",
-    "drill sergeant"
+    "drill sergeant",
+    "clanker",
+    "shhh",
+    "shh",
 ]
 
 RULES = """
@@ -80,7 +83,7 @@ def add_warning(name):
         send_message(f"{name}, this is your second warning.")
 
     elif warnings[name] >= 3:
-        send_message(f"{name} has 3 warnings. Leadership should review this.")
+        send_message(f"{name} has 3 warnings. EJ, Breyden and the drum majors will be notified. Keep going and C")
 
 # -----------------------------
 # WEBHOOK
