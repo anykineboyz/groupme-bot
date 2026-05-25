@@ -20,8 +20,10 @@ warnings = {}
 BANNED_WORDS = [
     "fuck",
     "bitch",
-    "slur1",
-    "slur2"
+    "mom",
+    "dad",
+    "die",
+    "kill",
 ]
 
 RULES = """
@@ -94,8 +96,8 @@ def webhook():
     elif message == "hello":
         send_message(f"Hi {name}!")
 
-    elif message == "Stop":
-    send_message(f"{name}, Remember Niko, STOP means STOP. So do not send another message, or you will receive a warning and eventually be kicked.")
+    elif message == "stop":
+        send_message(f"Remember Niko, STOP means STOP. So do not send another message, or you will receive a warning and eventually be kicked.")
 
     elif message == "/warnings":
         send_message(f"{name}, you have {warnings.get(name, 0)} warnings.")
@@ -130,7 +132,10 @@ def webhook():
     # -------------------------
     # QUIET HOURS WARNING
     # -------------------------
-    hour = datetime.now().hour
+   from datetime import datetime
+from zoneinfo import ZoneInfo
+
+hour = datetime.now(ZoneInfo("Pacific/Honolulu")).hour
 
     if hour >= 22 or hour < 5:
         send_message("Reminder: Please avoid messaging between 10 PM and 5 AM.")
