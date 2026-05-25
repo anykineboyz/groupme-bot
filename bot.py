@@ -29,6 +29,14 @@ BANNED_WORDS = [
     "dad",
     "die",
     "kill",
+    "nigga", 
+    "nigger",
+    "retard",
+    "fagget",
+    "eva",
+    "rene",
+    "brendon",
+    "drill sergeant"
 ]
 
 RULES = """
@@ -120,7 +128,7 @@ def webhook():
     if "niko" in name_lower:
         niko_message_count[name] = niko_message_count.get(name, 0) + 1
 
-        if niko_message_count[name] % 4 == 0:
+        if niko_message_count[name] % 15 == 0:
             send_message("Niko, be considerate of others and try not to chat too much.")
 
     # -------------------------
