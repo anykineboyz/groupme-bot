@@ -20,7 +20,7 @@ warnings = {}
 niko_message_count = {}
 
 last_quiet_warning = 0
-QUIET_WARNING_COOLDOWN = 1800
+QUIET_WARNING_COOLDOWN = 0
 
 BANNED_WORDS = [
     "fuck",
@@ -83,7 +83,7 @@ def add_warning(name):
         send_message(f"{name}, this is your second warning.")
 
     elif warnings[name] >= 3:
-        send_message(f"{name} has 3 warnings. EJ, Breyden and the drum majors will be notified. Keep going and C")
+        send_message(f"{name} has 3 warnings. EJ, Breyden and possibly the drum majors will be notified. They will decide what consequences you will face.")
 
 # -----------------------------
 # WEBHOOK
@@ -131,7 +131,7 @@ def webhook():
     if "niko" in name_lower:
         niko_message_count[name] = niko_message_count.get(name, 0) + 1
 
-        if niko_message_count[name] % 15 == 0:
+        if niko_message_count[name] % 13 == 0:
             send_message("Niko, be considerate of others and try not to chat too much.")
 
     # -------------------------
@@ -139,7 +139,7 @@ def webhook():
     # -------------------------
     for word in BANNED_WORDS:
         if word in message:
-            send_message(f"{name}, please watch your language and follow the rules.")
+            send_message(f"{name}, watch your language and follow the rules.")
             add_warning(name)
             break
 
@@ -161,17 +161,20 @@ def webhook():
             send_message(f"{name}, stop spamming the chat.")
             add_warning(name)
 
-    # -------------------------
+       # -------------------------
     # QUIET HOURS WARNING
     # -------------------------
-    hour = datetime.now(ZoneInfo("Pacific/Honolulu")).hour
+    now_hawaii = datetime.now(ZoneInfo("Pacific/Honolulu"))
+
+    current_time = now_hawaii.hour + now_hawaii.minute / 60
 
     if (
-        (hour >= 22 or hour < 5)
+        (current_time >= 21.5 or current_time < 6.5)
         and now - last_quiet_warning > QUIET_WARNING_COOLDOWN
     ):
-        send_message("Reminder: Please avoid messaging between 10 PM and 5 AM.")
+        send_message(f"{name}, Please avoid messaging between 9:30 PM and 6:30 AM.")
         last_quiet_warning = now
+        add_warning(name)
 
     return "ok", 200
 
