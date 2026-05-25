@@ -2,6 +2,7 @@ from flask import Flask, request
 import requests
 from time import time
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import os
 
 app = Flask(__name__)
@@ -16,6 +17,10 @@ SPAM_WINDOW = 5
 
 user_activity = {}
 warnings = {}
+niko_message_count = {}
+
+last_quiet_warning = 0
+QUIET_WARNING_COOLDOWN = 1800
 
 BANNED_WORDS = [
     "fuck",
@@ -74,6 +79,8 @@ def add_warning(name):
 # -----------------------------
 @app.route("/", methods=["POST"])
 def webhook():
+    global last_quiet_warning
+
     data = request.json
 
     if not data:
@@ -84,7 +91,9 @@ def webhook():
 
     message = data.get("text", "").lower().strip()
     name = data.get("name", "Unknown")
+    name_lower = name.lower()
     user_id = data.get("user_id")
+
     now = time()
 
     # -------------------------
@@ -101,6 +110,18 @@ def webhook():
 
     elif message == "/warnings":
         send_message(f"{name}, you have {warnings.get(name, 0)} warnings.")
+
+    elif "boss" in message:
+        send_message("Good boy, Niko!")
+
+    # -------------------------
+    # NIKO MESSAGE COUNTER
+    # -------------------------
+    if "niko" in name_lower:
+        niko_message_count[name] = niko_message_count.get(name, 0) + 1
+
+        if niko_message_count[name] % 4 == 0:
+            send_message("Niko, be considerate of others and try not to chat too much.")
 
     # -------------------------
     # PROFANITY CHECK
@@ -132,13 +153,14 @@ def webhook():
     # -------------------------
     # QUIET HOURS WARNING
     # -------------------------
-   from datetime import datetime
-from zoneinfo import ZoneInfo
+    hour = datetime.now(ZoneInfo("Pacific/Honolulu")).hour
 
-hour = datetime.now(ZoneInfo("Pacific/Honolulu")).hour
-
-    if hour >= 22 or hour < 5:
+    if (
+        (hour >= 22 or hour < 5)
+        and now - last_quiet_warning > QUIET_WARNING_COOLDOWN
+    ):
         send_message("Reminder: Please avoid messaging between 10 PM and 5 AM.")
+        last_quiet_warning = now
 
     return "ok", 200
 
