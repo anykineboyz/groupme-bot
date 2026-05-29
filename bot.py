@@ -31,7 +31,8 @@ GENERAL_BANNED_WORDS = [
     "nigger",
     "retard",
     "faggot",
-    "shit"
+    "shit",
+    "fagget"
 ]
 
 NIKO_ONLY_BANNED_WORDS = [
@@ -49,7 +50,8 @@ NIKO_ONLY_BANNED_WORDS = [
     "dad",
     "shhh",
     "haha",
-    "hehe"
+    "hehe",
+    "idiot",
 ]
 
 RULES = """
@@ -76,7 +78,7 @@ quiet_users = {}
 stop_active = False
 
 # prevents repeated admin alerts
-three_mark_alerted = set()
+five_mark_alerted = set()
 
 # -----------------------------
 # SEND MESSAGE
@@ -117,15 +119,13 @@ def add_niko_mark(name):
 
     marks = niko_marks[name]
 
-if marks == 1:
+    if marks == 1:
 
-    send_message(
-        f"{name}, this is your first Niko Mark. The limit is 5. "
-    )
+        send_message(
+            f"{name}, this is your first Niko Mark. The limit is 5."
+        )
 
-elif marks == 2:
-    
-    if marks == 2:
+    elif marks == 2:
 
         send_message(
             f"{name}, this is your second Niko Mark."
@@ -145,7 +145,7 @@ elif marks == 2:
 
     elif marks >= 5:
 
-        if name not in three_mark_alerted:
+        if name not in five_mark_alerted:
 
             send_message(
                 f"⚠️ Ethan Vera and Breyden: {name} has reached 5 Niko Marks."
@@ -284,26 +284,26 @@ def webhook():
         send_message("Good boy, Niko!")
         return "ok", 200
 
-    # -----------------------------
-    # NIKO MESSAGE COUNTER
-    # -----------------------------
-    if "niko" in name_lower:
+# -----------------------------
+# NIKO MESSAGE COUNTER
+# -----------------------------
+if "niko" in name_lower:
 
-        niko_message_count[name] = (
-            niko_message_count.get(name, 0) + 1
+    niko_message_count[name] = (
+        niko_message_count.get(name, 0) + 1
+    )
+
+    if niko_message_count[name] % 25 == 0:
+
+        send_message(
+            "sorry niko, i want to keep groupme a professional method of communication. please do not message me unless you have a question about band that your section leaders cannot answer."
         )
 
-        if niko_message_count[name] % 25 == 0:
+    elif niko_message_count[name] % 13 == 0:
 
-            send_message(
-                "sorry niko, i want to keep groupme a professional method of communication. please do not message me unless you have a question about band that your section leaders cannot answer."
-            )
-            if niko_message_count[name] % 13 == 0:
-
-            send_message(
-                "Niko, be considerate of others and don't chat too much."
-            )
-
+        send_message(
+            "Niko, be considerate of others and don't chat too much."
+        )
     
     # -----------------------------
     # GENERAL PROFANITY
