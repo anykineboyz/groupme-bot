@@ -284,27 +284,27 @@ def webhook():
         send_message("Good boy, Niko!")
         return "ok", 200
 
-# -----------------------------
-# NIKO MESSAGE COUNTER
-# -----------------------------
-if "niko" in name_lower:
+    # -----------------------------
+    # NIKO MESSAGE COUNTER
+    # -----------------------------
+    if "niko" in name_lower:
 
-    niko_message_count[name] = (
-        niko_message_count.get(name, 0) + 1
-    )
-
-    if niko_message_count[name] % 25 == 0:
-
-        send_message(
-            "sorry niko, i want to keep groupme a professional method of communication. please do not message me unless you have a question about band that your section leaders cannot answer."
+        niko_message_count[name] = (
+            niko_message_count.get(name, 0) + 1
         )
 
-    elif niko_message_count[name] % 13 == 0:
+        if niko_message_count[name] % 25 == 0:
 
-        send_message(
-            "Niko, be considerate of others and don't chat too much."
-        )
-    
+            send_message(
+                "sorry niko, i want to keep groupme a professional method of communication. please do not message me unless you have a question about band that your section leaders cannot answer."
+            )
+
+        elif niko_message_count[name] % 13 == 0:
+
+            send_message(
+                "Niko, be considerate of others and don't chat too much."
+            )
+
     # -----------------------------
     # GENERAL PROFANITY
     # -----------------------------
