@@ -118,33 +118,33 @@ def add_warning(name):
 
     warnings[name] = warnings.get(name, 0) + 1
 
-    warnings = warnings[name]
+    count = warnings[name]
 
-    if warnings == 1:
+    if count == 1:
 
         send_message(
             f"{name}, this is your first warning. The limit is 5."
         )
 
-    elif warnings == 2:
+    elif count == 2:
 
         send_message(
             f"{name}, this is your second warning. Be careful about your actions."
         )
 
-    elif warnings == 3:
+    elif count == 3:
 
         send_message(
             f"{name}, you now have 3 warnings. Watch your behavior."
         )
 
-    elif warnings == 4:
+    elif count == 4:
 
         send_message(
             f"{name}, you now have 4 warnings. One more  will alert section leaders, and they will most likely remove you."
         )
 
-    elif warnings >= 5:
+    elif count >= 5:
 
         if name not in five_warnings_alerted:
 
