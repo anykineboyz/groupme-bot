@@ -21,7 +21,8 @@ IMMUNE_USERS = {
     "ethan",
     "breyden",
     "sidney",
-    "jacob"
+    "jacob",
+    "zach"
 }
 
 GENERAL_BANNED_WORDS = [
@@ -49,9 +50,9 @@ NIKO_ONLY_BANNED_WORDS = [
     "mom",
     "dad",
     "shhh",
-    "haha",
-    "hehe",
     "idiot",
+    "ass",
+    "shut",
 ]
 
 RULES = """
@@ -71,14 +72,14 @@ GROUPCHAT RULES
 # STORAGE
 # -----------------------------
 user_activity = {}
-niko_marks = {}
+warnings = {}
 niko_message_count = {}
 quiet_users = {}
 
 stop_active = False
 
 # prevents repeated admin alerts
-five_mark_alerted = set()
+five_warnings_alerted = set()
 
 # -----------------------------
 # SEND MESSAGE
@@ -108,61 +109,61 @@ def is_immune(name):
     )
 
 # -----------------------------
-# ADD NIKO MARK
+# ADD WARNING
 # -----------------------------
-def add_niko_mark(name):
+def add_warning(name):
 
     if is_immune(name):
         return
 
-    niko_marks[name] = niko_marks.get(name, 0) + 1
+    warnings[name] = warningss.get(name, 0) + 1
 
-    marks = niko_marks[name]
+    warnings = warnings[name]
 
-    if marks == 1:
-
-        send_message(
-            f"{name}, this is your first Niko Mark. The limit is 5."
-        )
-
-    elif marks == 2:
+    if warnings == 1:
 
         send_message(
-            f"{name}, this is your second Niko Mark."
+            f"{name}, this is your first warning. The limit is 5."
         )
 
-    elif marks == 3:
+    elif warnings == 2:
 
         send_message(
-            f"{name}, you now have 3 Niko Marks. Watch your behavior."
+            f"{name}, this is your second warning. Be careful about your actions."
         )
 
-    elif marks == 4:
+    elif warnings == 3:
 
         send_message(
-            f"{name}, you now have 4 Niko Marks. One more mark will alert section leaders, and they will most likely remove you."
+            f"{name}, you now have 3 warnings. Watch your behavior."
         )
 
-    elif marks >= 5:
+    elif warnings == 4:
 
-        if name not in five_mark_alerted:
+        send_message(
+            f"{name}, you now have 4 warnings. One more  will alert section leaders, and they will most likely remove you."
+        )
+
+    elif warnings >= 5:
+
+        if name not in five_warnings_alerted:
 
             send_message(
-                f"⚠️ Ethan Vera and Breyden: {name} has reached 5 Niko Marks."
+                f"⚠️ Ethan Vera and Breyden: {name} has reached 5 warnings. Please proceed to remove him."
             )
 
-            five_mark_alerted.add(name)
+            five_warnings_alerted.add(name)
 
 # -----------------------------
-# REMOVE NIKO MARK
+# REMOVE WARNING
 # -----------------------------
-def remove_niko_mark(name):
+def remove_warning(name):
 
-    if name not in niko_marks:
-        niko_marks[name] = 0
+    if name not in warnings:
+        warnings[name] = 0
 
-    if niko_marks[name] > 0:
-        niko_marks[name] -= 1
+    if warnings[name] > 0:
+        warnings[name] -= 1
 
 # -----------------------------
 # WEBHOOK
@@ -199,10 +200,10 @@ def webhook():
         if "niko" in name_lower:
 
             send_message(
-                "Niko ignored STOP and received a Niko Mark."
+                "Niko ignored STOP and received a warning."
             )
 
-            add_niko_mark(name)
+            add_warning(name)
 
         stop_active = False
 
@@ -211,32 +212,32 @@ def webhook():
     # -----------------------------
     if is_immune(name):
 
-        # /addmark NAME
-        if message_lower.startswith("/addmark "):
+        # /addwarning NAME
+        if message_lower.startswith("/addwarning "):
 
             target = message[9:].strip()
 
             if target:
 
-                add_niko_mark(target)
+                add_warning(target)
 
                 send_message(
-                    f"{target} received a Niko Mark."
+                    f"{target} received a warning."
                 )
 
             return "ok", 200
 
-        # /removemark NAME
-        elif message_lower.startswith("/removemark "):
+        # /removewarning NAME
+        elif message_lower.startswith("/removewarning "):
 
             target = message[12:].strip()
 
             if target:
 
-                remove_niko_mark(target)
+                remove_warning(target)
 
                 send_message(
-                    f"Removed one Niko Mark from {target}."
+                    f"Removed one warning from {target}."
                 )
 
             return "ok", 200
@@ -254,18 +255,18 @@ def webhook():
         send_message(f"Hi {name}!")
         return "ok", 200
 
-    elif message_lower == "/nikomarks":
+    elif message_lower == "/warnings":
 
         if is_immune(name):
 
             send_message(
-                f"{name}, you are immune to Niko Marks."
+                f"{name}, you nomore warnings buggah, u chilling."
             )
 
         else:
 
             send_message(
-                f"{name}, you have {niko_marks.get(name, 0)} Niko Marks."
+                f"{name}, you have {warnings.get(name, 0)} warnings."
             )
 
         return "ok", 200
@@ -273,7 +274,7 @@ def webhook():
     elif message_lower == "stop":
 
         send_message(
-            "Remember Niko, STOP means STOP. Do not send another message or you will receive a Niko Mark."
+            "Remember Niko, STOP means STOP. Do not send another message or you will receive a warning."
         )
 
         stop_active = True
@@ -289,21 +290,15 @@ def webhook():
     # -----------------------------
     if "niko" in name_lower:
 
-        niko_message_count[name] = (
-            niko_message_count.get(name, 0) + 1
+    niko_message_count[name] = (
+        niko_message_count.get(name, 0) + 1
+    )
+
+    if niko_message_count[name] % 20 == 0:
+
+        send_message(
+            "Niko, please be considerate of others and try not to chat too much."
         )
-
-        if niko_message_count[name] % 25 == 0:
-
-            send_message(
-                "sorry niko, i want to keep groupme a professional method of communication. please do not message me unless you have a question about band that your section leaders cannot answer."
-            )
-
-        elif niko_message_count[name] % 13 == 0:
-
-            send_message(
-                "Niko, be considerate of others and don't chat too much."
-            )
 
     # -----------------------------
     # GENERAL PROFANITY
@@ -316,7 +311,7 @@ def webhook():
                 f"{name}, watch your language and follow the rules."
             )
 
-            add_niko_mark(name)
+            add_warning(name)
             break
 
     # -----------------------------
@@ -329,10 +324,10 @@ def webhook():
             if re.search(rf"\b{re.escape(word)}\b", message_lower):
 
                 send_message(
-                    f"{name}, behave you bad boy."
+                    f"{name}, watch your language."
                 )
 
-                add_niko_mark(name)
+                add_warning(name)
                 break
 
     # -----------------------------
@@ -356,19 +351,22 @@ def webhook():
                 f"{name}, stop spamming the chat."
             )
 
-            add_niko_mark(name)
+            add_warning(name)
 
     # -----------------------------
     # QUIET HOURS
-    # 10:30 PM -> 6:30 AM
+    # 12:00 AM -> 6:30 AM
     # -----------------------------
     hawaii_time = datetime.now(
         ZoneInfo("Pacific/Honolulu")
     )
 
-    current = hawaii_time.hour + hawaii_time.minute / 60
+    current = (
+        hawaii_time.hour
+        + hawaii_time.minute / 60
+    )
 
-    if current >= 22.5 or current < 6.5:
+    if current < 6.5:
 
         if (
             name not in quiet_users
@@ -377,14 +375,11 @@ def webhook():
         ):
 
             send_message(
-                f"{name}, please avoid messaging between 10:30 PM and 6:30 AM."
+                f"{name}, please don't message between 12 AM and 6:30 AM. Goodnight!"
             )
 
             quiet_users[name] = now
-
-            add_niko_mark(name)
-
-    return "ok", 200
+             return "ok", 200
 
 # -----------------------------
 # RUN
