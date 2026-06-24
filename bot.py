@@ -116,7 +116,7 @@ def add_warning(name):
     if is_immune(name):
         return
 
-    warnings[name] = warningss.get(name, 0) + 1
+    warnings[name] = warnings.get(name, 0) + 1
 
     warnings = warnings[name]
 
@@ -215,7 +215,7 @@ def webhook():
         # /addwarning NAME
         if message_lower.startswith("/addwarning "):
 
-            target = message[9:].strip()
+            target = message[12:].strip()
 
             if target:
 
@@ -230,7 +230,7 @@ def webhook():
         # /removewarning NAME
         elif message_lower.startswith("/removewarning "):
 
-            target = message[12:].strip()
+            target = message[15:].strip()
 
             if target:
 
@@ -290,15 +290,15 @@ def webhook():
     # -----------------------------
     if "niko" in name_lower:
 
-    niko_message_count[name] = (
-        niko_message_count.get(name, 0) + 1
-    )
-
-    if niko_message_count[name] % 20 == 0:
-
-        send_message(
-            "Niko, please be considerate of others and try not to chat too much."
+        niko_message_count[name] = (
+            niko_message_count.get(name, 0) + 1
         )
+
+        if niko_message_count[name] % 20 == 0:
+
+            send_message(
+                "Niko, please be considerate of others and try not to chat too much."
+            )
 
     # -----------------------------
     # GENERAL PROFANITY
@@ -379,7 +379,7 @@ def webhook():
             )
 
             quiet_users[name] = now
-             return "ok", 200
+            return "ok", 200
 
 # -----------------------------
 # RUN
