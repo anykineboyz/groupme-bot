@@ -43,6 +43,8 @@ NIKO_ONLY_BANNED_WORDS = [
     "drill sergeant",
     "clanker",
     "shh",
+    "hehe",
+    "haha",
     "die",
     "kill",
     "stupid",
