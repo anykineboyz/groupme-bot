@@ -125,7 +125,7 @@ INSPIRATIONAL_QUOTES = [
     ("You have to keep believing in yourself no matter what happens.", "Michael Chandler"),
     ("Excellence is not a singular act, but a habit.", "Conor McGregor"),
     ("You have to be willing to work harder than everyone else.", "Daniel Cormier"),
-    ("You have to work hard every day if you want to be the best.", "Islam Makhachev")
+    ("You have to work hard every day if you want to be the best.", "Islam Makhachev"),
     ("I train hard, I fight easy.", "Khabib Nurmagomedov"),
     ("I've always believed that if you work hard enough, good things will happen.", "Dustin Poirier"),
     ("The more you learn, the more you realize how much you don't know.", "Georges St-Pierre"),
