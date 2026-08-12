@@ -1,21 +1,28 @@
 from flask import Flask, request
 import requests
-from time import time
+from time import time, sleep
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import os
 import re
+import threading
+import random
 
 app = Flask(__name__)
 
 # -----------------------------
 # CONFIG
 # -----------------------------
+
 BOT_ID = os.environ.get("BOT_ID")
 
 SPAM_LIMIT = 5
 SPAM_WINDOW = 15
 QUIET_WARNING_COOLDOWN = 90
+
+# Daily quote time
+DAILY_QUOTE_HOUR = 7
+DAILY_QUOTE_MINUTE = 50
 
 IMMUNE_USERS = {
     "ethan",
@@ -55,6 +62,12 @@ NIKO_ONLY_BANNED_WORDS = [
     "idiot",
     "ass",
     "shut",
+    "uncle",
+    "aunty",
+    "what",
+    "no",
+    "stop",
+    "fine"
 ]
 
 RULES = """
@@ -71,8 +84,70 @@ GROUPCHAT RULES
 """
 
 # -----------------------------
+# DAILY INSPIRATIONAL QUOTES
+# -----------------------------
+
+INSPIRATIONAL_QUOTES = [
+    ("Success is the sum of small efforts, repeated day in and day out.", "Robert Collier"),
+    ("We fall, but we get up because the ground is no place for a champion.", "Dustin Porier"), 
+    ("Believe you can and you're halfway there.", "Theodore Roosevelt"),
+    ("The secret of getting ahead is getting started.", "Mark Twain"),
+    ("I don’t celebrate my victories too much because I’m always looking forward to the next challenge.", "Jon Jones),
+    ("Great things are done by a series of small things brought together.", "Vincent van Gogh"),
+    ("It always seems impossible until it's done.", "Nelson Mandela"),
+    ("I’m not the best. I just believe I can do things other people think are impossible.", "Anderson the spider Silva"),
+    ("The future depends on what you do today.", "Mahatma Gandhi"),
+    ("Hardships often prepare ordinary people for an extraordinary destiny.", "C.S. Lewis"),
+    ("You don't have to be great to start, but you have to start to be great.", "Zig Ziglar"),
+    ("A little progress each day adds up to big results.", "Palm Beach Pete"),
+    ("If you want to be the best, you’ve got the beat the best, and the best is Blessed, baby.", "Max Holloway"),
+    ("Your only limit is your mind.", "Kent Sato"),
+    ("Keep going. Your future self will thank you.", "Ethan Vera"),
+    ("Difficult roads often lead to beautiful destinations.", "Breyden Lacar"),
+    ("Small steps every day.", "Hardeep Saluja"),
+    ("Be stronger than your excuses.", "Ahren Awong"),
+    ("Make today count.", "Joseph Holtzmann"),
+    ("Progress, not perfection.", "Clement Zhang"),
+    ("The harder you work for something, the greater you'll feel when you achieve it.", "Hideki Tojo"),
+    ("I always have doubts. I'm always afraid. But that's what makes someone courageous.", "Georges St-Pierre"),
+    ("You have to believe in yourself and believe that you can do anything.", "Amanda Nunes"),
+    ("Blessed is a mindset.", "Max Holloway"),
+    ("There is no substitute for hard work.", "Michael Chandler"),
+    ("We are here to take over.", "Conor McGregor"),
+    ("You have to work hard every day if you want to be the best.", "Islam Makhachev"),
+    ("You have to keep moving forward and never give up.", "Alex Pereira"),
+    ("The greatest thing about competition is that it brings out the best in you.", "Daniel Cormier"),
+    ("If you want it bad enough, you can always make your dreams come true.", "Max Holloway"),
+    ("Champions don't make excuses.", "Khabib Nurmagomedov"),
+    ("Nothing good ever comes from worrying or sitting there feeling sorry for yourself.", "Conor McGregor"),
+    ("The best fighters are the ones who can adapt.", "Jon Jones"),
+    ("You have to believe in yourself before anyone else will.", "Georges St-Pierre"),
+    ("You have to keep believing in yourself no matter what happens.", "Michael Chandler"),
+    ("Excellence is not a singular act, but a habit.", "Conor McGregor"),
+    ("You have to be willing to work harder than everyone else.", "Daniel Cormier"),
+    ("You have to work hard every day if you want to be the best.", "Islam Makhachev")
+    ("I train hard, I fight easy.", "Khabib Nurmagomedov"),
+    ("I've always believed that if you work hard enough, good things will happen.", "Dustin Poirier"),
+    ("The more you learn, the more you realize how much you don't know.", "Georges St-Pierre"),
+    ("You have to keep moving forward and never give up.", "Alex Pereira"),
+    ("I want to be remembered as someone who never gave up.", "Jon Jones"),
+    ("You can never underestimate what hard work and determination can accomplish.", "Dustin Poirier"),
+    ("It is what it is. I just keep moving forward.", "Max Holloway"),
+    ("I don't need to be perfect. I just need to be better.", "Israel Adesanya"),
+    ("You have to be willing to work harder than everyone else.", "Daniel Cormier"),
+    ("You have to believe in yourself before anyone else will.", "Georges St-Pierre")
+]
+
+# Quotes that have already been used
+used_quotes = set()
+
+# Prevents the quote from being sent twice on the same day
+last_quote_date = None
+
+# -----------------------------
 # STORAGE
 # -----------------------------
+
 user_activity = {}
 warnings = {}
 niko_message_count = {}
@@ -80,29 +155,115 @@ quiet_users = {}
 
 stop_active = False
 
-# prevents repeated admin alerts
+# Prevents repeated admin alerts
 five_warnings_alerted = set()
 
 # -----------------------------
 # SEND MESSAGE
 # -----------------------------
+
 def send_message(text):
 
     if not BOT_ID:
         print("BOT_ID missing")
         return
 
-    requests.post(
-        "https://api.groupme.com/v3/bots/post",
-        json={
-            "bot_id": BOT_ID,
-            "text": text
-        }
+    try:
+        response = requests.post(
+            "https://api.groupme.com/v3/bots/post",
+            json={
+                "bot_id": BOT_ID,
+                "text": text
+            },
+            timeout=10
+        )
+
+        print("GroupMe response:", response.status_code)
+
+    except Exception as e:
+        print("Error sending GroupMe message:", e)
+
+
+# -----------------------------
+# DAILY QUOTE
+# -----------------------------
+
+def send_daily_quote():
+
+    global used_quotes
+    global last_quote_date
+
+    hawaii_time = datetime.now(
+        ZoneInfo("Pacific/Honolulu")
     )
+
+    today = hawaii_time.date()
+
+    # Don't send more than once per day
+    if last_quote_date == today:
+        return
+
+    # Only send at or after 8:00 AM
+    if hawaii_time.hour < DAILY_QUOTE_HOUR:
+        return
+
+    if (
+        hawaii_time.hour == DAILY_QUOTE_HOUR
+        and hawaii_time.minute < DAILY_QUOTE_MINUTE
+    ):
+        return
+
+    # If we've used every quote, start over
+    if len(used_quotes) >= len(INSPIRATIONAL_QUOTES):
+        used_quotes.clear()
+
+    # Pick an unused quote
+    available_quotes = [
+        quote
+        for quote in INSPIRATIONAL_QUOTES
+        if quote not in used_quotes
+    ]
+
+    quote, author = random.choice(available_quotes)
+
+    send_message(
+        f"🌟 DAILY INSPIRATION 🌟\n\n"
+        f"“{quote}”\n"
+        f"— {author}"
+    )
+
+    used_quotes.add((quote, author))
+    last_quote_date = today
+
+    print(
+        f"Daily quote sent for {today}: {quote}"
+    )
+
+
+# -----------------------------
+# DAILY QUOTE BACKGROUND LOOP
+# -----------------------------
+
+def daily_quote_loop():
+
+    print("Daily quote system started.")
+
+    while True:
+
+        try:
+            send_daily_quote()
+
+        except Exception as e:
+            print("Daily quote error:", e)
+
+        # Check every 30 seconds
+        sleep(30)
+
 
 # -----------------------------
 # CHECK IMMUNITY
 # -----------------------------
+
 def is_immune(name):
 
     return any(
@@ -110,9 +271,11 @@ def is_immune(name):
         for user in IMMUNE_USERS
     )
 
+
 # -----------------------------
 # ADD WARNING
 # -----------------------------
+
 def add_warning(name):
 
     if is_immune(name):
@@ -143,7 +306,7 @@ def add_warning(name):
     elif count == 4:
 
         send_message(
-            f"{name}, you now have 4 warnings. One more  will alert section leaders, and they will most likely remove you."
+            f"{name}, you now have 4 warnings. One more will alert section leaders, and they will most likely remove you."
         )
 
     elif count >= 5:
@@ -156,9 +319,11 @@ def add_warning(name):
 
             five_warnings_alerted.add(name)
 
+
 # -----------------------------
 # REMOVE WARNING
 # -----------------------------
+
 def remove_warning(name):
 
     if name not in warnings:
@@ -167,9 +332,11 @@ def remove_warning(name):
     if warnings[name] > 0:
         warnings[name] -= 1
 
+
 # -----------------------------
 # WEBHOOK
 # -----------------------------
+
 @app.route("/", methods=["POST"])
 def webhook():
 
@@ -180,7 +347,7 @@ def webhook():
     if not data:
         return "ok", 200
 
-    # ignore bot messages
+    # Ignore bot messages
     if data.get("sender_type") == "bot":
         return "ok", 200
 
@@ -197,6 +364,7 @@ def webhook():
     # -----------------------------
     # STOP TRACKING
     # -----------------------------
+
     if stop_active:
 
         if "niko" in name_lower:
@@ -212,6 +380,7 @@ def webhook():
     # -----------------------------
     # ADMIN COMMANDS
     # -----------------------------
+
     if is_immune(name):
 
         # /addwarning NAME
@@ -247,6 +416,7 @@ def webhook():
     # -----------------------------
     # COMMANDS
     # -----------------------------
+
     if message_lower == "/rules":
 
         send_message(RULES)
@@ -262,7 +432,7 @@ def webhook():
         if is_immune(name):
 
             send_message(
-                f"{name}, you nomore warnings buggah, u chilling."
+                f"{name}, you no more warnings buggah, u chilling."
             )
 
         else:
@@ -290,24 +460,29 @@ def webhook():
     # -----------------------------
     # NIKO MESSAGE COUNTER
     # -----------------------------
+
     if "niko" in name_lower:
 
         niko_message_count[name] = (
             niko_message_count.get(name, 0) + 1
         )
 
-        if niko_message_count[name] % 20 == 0:
+        if niko_message_count[name] % 10 == 0:
 
             send_message(
-                "Niko, please be considerate of others and try not to chat too much."
+                "Niko, please be considerate of others and try not to chat too much. Chat more and you may receive a warning."
             )
 
     # -----------------------------
     # GENERAL PROFANITY
     # -----------------------------
+
     for word in GENERAL_BANNED_WORDS:
 
-        if re.search(rf"\b{re.escape(word)}\b", message_lower):
+        if re.search(
+            rf"\b{re.escape(word)}\b",
+            message_lower
+        ):
 
             send_message(
                 f"{name}, watch your language and follow the rules."
@@ -319,11 +494,15 @@ def webhook():
     # -----------------------------
     # NIKO ONLY WORDS
     # -----------------------------
+
     if "niko" in name_lower:
 
         for word in NIKO_ONLY_BANNED_WORDS:
 
-            if re.search(rf"\b{re.escape(word)}\b", message_lower):
+            if re.search(
+                rf"\b{re.escape(word)}\b",
+                message_lower
+            ):
 
                 send_message(
                     f"{name}, watch your language."
@@ -335,6 +514,7 @@ def webhook():
     # -----------------------------
     # SPAM DETECTION
     # -----------------------------
+
     if user_id:
 
         if user_id not in user_activity:
@@ -357,8 +537,9 @@ def webhook():
 
     # -----------------------------
     # QUIET HOURS
-    # 12:00 AM -> 6:30 AM
+    # 10:00 PM -> 6:30 AM
     # -----------------------------
+
     hawaii_time = datetime.now(
         ZoneInfo("Pacific/Honolulu")
     )
@@ -368,7 +549,7 @@ def webhook():
         + hawaii_time.minute / 60
     )
 
-    if current < 6.5:
+    if current >= 22 or current < 6.5:
 
         if (
             name not in quiet_users
@@ -377,18 +558,37 @@ def webhook():
         ):
 
             send_message(
-                f"{name}, please don't message between 12 AM and 6:30 AM. Goodnight!"
+                f"{name}, please don't message between 10 PM and 6:30 AM. Goodnight!"
             )
 
             quiet_users[name] = now
+
             return "ok", 200
+
+    return "ok", 200
+
+
+# -----------------------------
+# START DAILY QUOTE THREAD
+# -----------------------------
+
+quote_thread = threading.Thread(
+    target=daily_quote_loop,
+    daemon=True
+)
+
+quote_thread.start()
+
 
 # -----------------------------
 # RUN
 # -----------------------------
+
 if __name__ == "__main__":
 
-    port = int(os.environ.get("PORT", 5000))
+    port = int(
+        os.environ.get("PORT", 5000)
+    )
 
     app.run(
         host="0.0.0.0",
