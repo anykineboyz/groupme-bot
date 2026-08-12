@@ -92,7 +92,7 @@ INSPIRATIONAL_QUOTES = [
     ("We fall, but we get up because the ground is no place for a champion.", "Dustin Porier"), 
     ("Believe you can and you're halfway there.", "Theodore Roosevelt"),
     ("The secret of getting ahead is getting started.", "Mark Twain"),
-    ("I don’t celebrate my victories too much because I’m always looking forward to the next challenge.", "Jon Jones),
+    ("I don’t celebrate my victories too much because I’m always looking forward to the next challenge.", "Jon Jones"),
     ("Great things are done by a series of small things brought together.", "Vincent van Gogh"),
     ("It always seems impossible until it's done.", "Nelson Mandela"),
     ("I’m not the best. I just believe I can do things other people think are impossible.", "Anderson the spider Silva"),
