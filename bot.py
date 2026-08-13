@@ -68,7 +68,8 @@ NIKO_ONLY_BANNED_WORDS = [
     "what",
     "no",
     "stop",
-    "fine"
+    "fine",
+    "why"
 ]
 
 RULES = """
