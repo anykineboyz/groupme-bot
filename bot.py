@@ -65,11 +65,12 @@ NIKO_ONLY_BANNED_WORDS = [
     "shut",
     "uncle",
     "aunty",
-    "what",
     "no",
     "stop",
     "fine",
-    "why"
+    "why",
+    "sidney",
+    "ride"
 ]
 
 RULES = """
