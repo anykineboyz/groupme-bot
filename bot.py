@@ -1,12 +1,10 @@
 from flask import Flask, request
 import requests
-from time import time, sleep
+from time import time
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import os
 import re
-import threading
-import random
 
 app = Flask(__name__)
 
@@ -19,11 +17,6 @@ BOT_ID = os.environ.get("BOT_ID")
 SPAM_LIMIT = 5
 SPAM_WINDOW = 15
 QUIET_WARNING_COOLDOWN = 90
-
-# Daily quote time
-# 7:50 AM Hawaii time
-DAILY_QUOTE_HOUR = 7
-DAILY_QUOTE_MINUTE = 50
 
 IMMUNE_USERS = {
     "ethan",
@@ -65,7 +58,6 @@ NIKO_ONLY_BANNED_WORDS = [
     "shut",
     "uncle",
     "aunty",
-    "no",
     "stop",
     "fine",
     "why",
@@ -85,56 +77,6 @@ GROUPCHAT RULES
 7. No impersonation.
 8. Stop means stop.
 """
-
-# -----------------------------
-# DAILY INSPIRATIONAL QUOTES
-# -----------------------------
-
-INSPIRATIONAL_QUOTES = [
-    ("Success is the sum of small efforts, repeated day in and day out.", "Robert Collier"),
-    ("We fall, but we get up because the ground is no place for a champion.", "Dustin Poirier"),
-    ("Believe you can and you're halfway there.", "Theodore Roosevelt"),
-    ("The secret of getting ahead is getting started.", "Mark Twain"),
-    ("I don’t celebrate my victories too much because I’m always looking forward to the next challenge.", "Jon Jones"),
-    ("Great things are done by a series of small things brought together.", "Vincent van Gogh"),
-    ("It always seems impossible until it's done.", "Nelson Mandela"),
-    ("I’m not the best. I just believe I can do things other people think are impossible.", "Anderson Silva"),
-    ("The future depends on what you do today.", "Mahatma Gandhi"),
-    ("Hardships often prepare ordinary people for an extraordinary destiny.", "C.S. Lewis"),
-    ("You don't have to be great to start, but you have to start to be great.", "Zig Ziglar"),
-    ("A little progress each day adds up to big results.", "Palm Beach Pete"),
-    ("If you want to be the best, you’ve got to beat the best, and the best is Blessed, baby.", "Max Holloway"),
-    ("Your only limit is your mind.", "Kent Sato"),
-    ("Keep going. Your future self will thank you.", "Ethan Vera"),
-    ("Difficult roads often lead to beautiful destinations.", "Breyden Lacar"),
-    ("Small steps every day.", "Hardeep Saluja"),
-    ("Be stronger than your excuses.", "Ahren Awong"),
-    ("Make today count.", "Joseph Holtzmann"),
-    ("Progress, not perfection.", "Clement Zhang"),
-    ("The harder you work for something, the greater you'll feel when you achieve it.", "Hideki Tojo"),
-    ("I always have doubts. I'm always afraid. But that's what makes someone courageous.", "Georges St-Pierre"),
-    ("You have to believe in yourself and believe that you can do anything.", "Amanda Nunes"),
-    ("Blessed is a mindset.", "Max Holloway"),
-    ("There is no substitute for hard work.", "Michael Chandler"),
-    ("We are here to take over.", "Conor McGregor"),
-    ("You have to work hard every day if you want to be the best.", "Islam Makhachev"),
-    ("I train hard, I fight easy.", "Khabib Nurmagomedov"),
-    ("I've always believed that if you work hard enough, good things will happen.", "Dustin Poirier"),
-    ("The more you learn, the more you realize how much you don't know.", "Georges St-Pierre"),
-    ("You have to keep moving forward and never give up.", "Alex Pereira"),
-    ("I want to be remembered as someone who never gave up.", "Jon Jones"),
-    ("You can never underestimate what hard work and determination can accomplish.", "Dustin Poirier"),
-    ("It is what it is. I just keep moving forward.", "Max Holloway"),
-    ("I don't need to be perfect. I just need to be better.", "Israel Adesanya"),
-    ("You have to be willing to work harder than everyone else.", "Daniel Cormier"),
-    ("You have to believe in yourself before anyone else will.", "Georges St-Pierre")
-]
-
-# Quotes that have already been used
-used_quotes = set()
-
-# Prevents the quote from being sent twice on the same day
-last_quote_date = None
 
 # -----------------------------
 # STORAGE
@@ -180,91 +122,6 @@ def send_message(text):
             "Error sending GroupMe message:",
             error
         )
-
-# -----------------------------
-# DAILY QUOTE
-# -----------------------------
-
-def send_daily_quote():
-
-    global used_quotes
-    global last_quote_date
-
-    hawaii_time = datetime.now(
-        ZoneInfo("Pacific/Honolulu")
-    )
-
-    today = hawaii_time.date()
-
-    # Don't send more than once per day
-    if last_quote_date == today:
-        return
-
-    # Wait until 7:50 AM
-    if hawaii_time.hour < DAILY_QUOTE_HOUR:
-        return
-
-    if (
-        hawaii_time.hour == DAILY_QUOTE_HOUR
-        and hawaii_time.minute < DAILY_QUOTE_MINUTE
-    ):
-        return
-
-    # If we've used every quote, start over
-    if len(used_quotes) >= len(INSPIRATIONAL_QUOTES):
-        used_quotes.clear()
-
-    # Pick an unused quote
-    available_quotes = [
-        quote
-        for quote in INSPIRATIONAL_QUOTES
-        if quote not in used_quotes
-    ]
-
-    quote, author = random.choice(
-        available_quotes
-    )
-
-    send_message(
-        f"🌟 DAILY INSPIRATION 🌟\n\n"
-        f"“{quote}”\n"
-        f"— {author}"
-    )
-
-    used_quotes.add(
-        (quote, author)
-    )
-
-    last_quote_date = today
-
-    print(
-        f"Daily quote sent for {today}: {quote}"
-    )
-
-# -----------------------------
-# DAILY QUOTE BACKGROUND LOOP
-# -----------------------------
-
-def daily_quote_loop():
-
-    print(
-        "✅ Daily quote system started."
-    )
-
-    while True:
-
-        try:
-            send_daily_quote()
-
-        except Exception as error:
-
-            print(
-                "Daily quote error:",
-                error
-            )
-
-        # Check every 30 seconds
-        sleep(30)
 
 # -----------------------------
 # CHECK IMMUNITY
@@ -610,17 +467,6 @@ def webhook():
             return "ok", 200
 
     return "ok", 200
-
-# -----------------------------
-# START DAILY QUOTE THREAD
-# -----------------------------
-
-quote_thread = threading.Thread(
-    target=daily_quote_loop,
-    daemon=True
-)
-
-quote_thread.start()
 
 # -----------------------------
 # RUN
